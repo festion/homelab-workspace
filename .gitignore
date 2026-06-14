@@ -112,6 +112,7 @@ bower_components
 
 # Python
 .venv/
+venv/
 __pycache__/
 
 # IDE files
@@ -173,6 +174,14 @@ model-catalog/
 gw4-config-tool/
 3ddash/
 1-line-deploy/
+biometric-gateway/
+birdnet-go/
+communications/
+heydj/
+homelab-iac/
+portal-chat/
+stormcrow/
+tender-photos/
 backups/
 Omada_firmware/
 home-assistant-config-backup-*/
@@ -199,6 +208,7 @@ omada_config_restore.cfg
 .claude/projects/
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+.claude/settings.local.json.bak*
 # .serena/memories/ are tracked deliberately; only project.yml is per-machine
 .serena/project.yml
 .beads/
