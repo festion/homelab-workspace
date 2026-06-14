@@ -211,5 +211,8 @@ omada_config_restore.cfg
 .claude/settings.local.json.bak*
 # .serena/memories/ are tracked deliberately; only project.yml is per-machine
 .serena/project.yml
+# nested mcp-servers/ subdir agent state (per-machine)
+mcp-servers/.claude/settings.local.json
+mcp-servers/.serena/
 .beads/
 mcp-servers/proxmox-mcp-server/proxmox_mcp_config.json
