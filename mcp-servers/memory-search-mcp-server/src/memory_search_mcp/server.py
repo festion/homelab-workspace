@@ -25,7 +25,7 @@ mcp = FastMCP("Memory Search")
 
 
 @mcp.tool()
-def memory_recall(query: str, k: int = 8) -> dict[str, Any]:
+def memory_recall(query: str, k: int = 8, project: str | None = None) -> dict[str, Any]:
     """Semantically recall the most relevant memories + learnings for a query.
 
     Use this whenever the loaded MEMORY.md index doesn't already answer a recall
@@ -34,15 +34,21 @@ def memory_recall(query: str, k: int = 8) -> dict[str, Any]:
     keywords, so natural-language questions work ("how do I rotate a leaked
     secret", "why did my commit land on the wrong branch").
 
-    Returns ranked hits with `score` (≈0..1 similarity), `title`, `type`
-    (memory type or learning/<file>), `file`, and a short `desc`. Call
-    `memory_read` with a hit's `file` to pull its full text.
+    Indexes the global workspace memory + global learnings AND every project's
+    own .claude/learnings across the monorepo. Each hit carries `project`
+    ("(global)" or a repo name like "operations"/"stormcrow").
+
+    Returns ranked hits with `score` (≈0..1 similarity), `title`, `type`,
+    `project`, `file`, and a short `desc`. Call `memory_read` with a hit's
+    `path` (or `file` for global entries) to pull its full text.
 
     Args:
         query: Natural-language description of what you're trying to recall.
         k: Max number of hits to return (default 8).
+        project: Optional repo name to scope to (e.g. "operations"); returns
+            that project's learnings plus the global store.
     """
-    rows = core.search(query, k=k)
+    rows = core.search(query, k=k, project=project)
     return {"query": query, "count": len(rows), "results": rows}
 
 

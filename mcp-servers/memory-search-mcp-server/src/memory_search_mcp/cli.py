@@ -16,6 +16,8 @@ def main() -> None:
         description="Local semantic recall over Claude memory + learnings")
     ap.add_argument("query", nargs="?", default="")
     ap.add_argument("--k", type=int, default=8)
+    ap.add_argument("--project", default=None,
+                    help="scope to a repo's learnings (e.g. operations) + global")
     ap.add_argument("--reindex", action="store_true")
     ap.add_argument("--stats", action="store_true")
     ap.add_argument("--json", action="store_true")
@@ -29,17 +31,19 @@ def main() -> None:
     if a.stats:
         s = core.stats()
         print(f"collection '{s['collection']}': {s['count']} docs @ {s['db_dir']}")
+        for proj, n in s.get("projects", {}).items():
+            print(f"  {n:5d}  {proj}")
         return
     if not a.query:
         ap.error("provide a query, or --reindex / --stats")
 
-    rows = core.search(a.query, k=a.k)
+    rows = core.search(a.query, k=a.k, project=a.project)
     if a.json:
         print(json.dumps(rows, indent=2))
         return
     for r in rows:
         print(f"[{r['score']:.3f}] {r['title']}  ({r['type']})")
-        print(f"        {r['file']}")
+        print(f"        {r['project']} :: {r['file']}")
         if r["desc"]:
             print(f"        {r['desc']}")
     if not rows:
