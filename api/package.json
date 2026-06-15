@@ -26,12 +26,14 @@
   "license": "ISC",
   "description": "",
   "overrides": {
-    "tar": "^7.5.11",
+    "tar": "^7.5.16",
     "cacache": "^19.0.1",
     "qs": "^6.15.2",
     "minimatch": "^10.2.1",
     "@tootallnate/once": "^3.0.1",
     "brace-expansion": "^5.0.6",
-    "ip-address": "^10.1.1"
+    "ip-address": "^10.1.1",
+    "ws": "^8.21.0",
+    "js-yaml": "^4.1.2"
   }
 }
