@@ -102,16 +102,9 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock as any;
 
-// Mock window.location
-Object.defineProperty(window, 'location', {
-  value: {
-    host: 'localhost:3000',
-    hostname: 'localhost',
-    port: '3000',
-    protocol: 'http:',
-  },
-  writable: true,
-});
+// window.location (host/hostname/port/protocol) is provided by jest.config.js
+// testEnvironmentOptions.url ('http://localhost:3000'); jest 30 / jsdom no longer
+// allows redefining window.location via Object.defineProperty.
 
 // Suppress console warnings in tests unless debugging
 const originalWarn = console.warn;
