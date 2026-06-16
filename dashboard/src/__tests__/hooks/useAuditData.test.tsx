@@ -230,9 +230,11 @@ describe('useAuditData', () => {
       expect(result.current.isRealTime).toBe(true);
     });
 
-    // The actual WebSocket message handling would be tested 
-    // through the useConnectionStatus mock integration
-    expect(result.current.dataSource).toBe('polling'); // Fallback initially
+    // useConnectionStatus is mocked as connected (isConnected: true), so with
+    // real-time enabled the hook selects the WebSocket data source.
+    await waitFor(() => {
+      expect(result.current.dataSource).toBe('websocket');
+    });
   });
 
   it('should handle different polling intervals', async () => {

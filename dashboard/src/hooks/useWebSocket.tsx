@@ -41,6 +41,10 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}): WebSo
   const [latency, setLatency] = useState(0);
 
   const ws = useRef<WebSocket | null>(null);
+  // Set when the consumer calls disconnect() so the close handler does not
+  // schedule a reconnect for an intentional close (code 1000 is otherwise in
+  // the retryable set). Reset on each connect().
+  const intentionalClose = useRef(false);
   const reconnectAttempts = useRef(0);
   const reconnectTimeoutId = useRef<NodeJS.Timeout | null>(null);
   const heartbeatTimeoutId = useRef<NodeJS.Timeout | null>(null);
@@ -82,6 +86,7 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}): WebSo
 
   const connect = useCallback(() => {
     try {
+      intentionalClose.current = false;
       setConnectionStatus('connecting');
 
       // Enhanced connection validation
@@ -147,8 +152,10 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}): WebSo
         clearHeartbeatTimeout();
         onDisconnect?.();
 
-        // Enhanced reconnection logic with connection analysis
-        if (reconnect && reconnectAttempts.current < maxReconnectAttempts) {
+        // Enhanced reconnection logic with connection analysis. Skip entirely
+        // when the consumer asked to disconnect (an intentional close must stay
+        // closed and not schedule a reconnect).
+        if (!intentionalClose.current && reconnect && reconnectAttempts.current < maxReconnectAttempts) {
           // Analyze close code to determine if we should retry
           const shouldRetry = [1000, 1001, 1006, 1011, 1012, 1013, 1014].includes(event.code);
 
@@ -225,6 +232,7 @@ export const useWebSocket = (url: string, options: WebSocketOptions = {}): WebSo
   }, [connect]);
 
   const disconnect = useCallback(() => {
+    intentionalClose.current = true;
     clearReconnectTimeout();
     clearHeartbeatTimeout();
 

@@ -16,11 +16,9 @@ describe('useWebSocket', () => {
       useWebSocket('ws://localhost:3000/ws')
     );
 
-    // Initially disconnected
-    expect(result.current.isConnected).toBe(false);
-    expect(result.current.connectionStatus).toBe('disconnected');
-
-    // Wait for connection to establish
+    // The mount effect calls connect() immediately, so the initial
+    // 'disconnected' state is not observable here — assert the connection
+    // ultimately establishes (mock socket opens after a short delay).
     await waitFor(() => {
       expect(result.current.isConnected).toBe(true);
     }, { timeout: 5000 });
@@ -34,15 +32,14 @@ describe('useWebSocket', () => {
       useWebSocket('ws://localhost:3000/ws', { onError })
     );
 
-    // Wait for initial connection
+    // Wait until the hook has created its socket
     await waitFor(() => {
-      expect(result.current.connectionStatus).toBe('connecting');
+      expect(getMockWebSocket().last).toBeDefined();
     });
 
-    // Simulate error
+    // Simulate an error on the socket the hook actually created
     act(() => {
-      const mockWs = new (getMockWebSocket())('ws://localhost:3000/ws');
-      mockWs.simulateError();
+      getMockWebSocket().last.simulateError();
     });
 
     await waitFor(() => {
@@ -66,19 +63,22 @@ describe('useWebSocket', () => {
       expect(result.current.isConnected).toBe(true);
     });
 
-    // Simulate disconnection
+    const socketsBefore = getMockWebSocket().instances.length;
+
+    // Simulate disconnection on the hook's actual socket with a retryable code
     act(() => {
-      const mockWs = new (getMockWebSocket())('ws://localhost:3000/ws');
-      mockWs.simulateClose(1006, 'Connection lost');
+      getMockWebSocket().last.simulateClose(1006, 'Connection lost');
     });
 
     await waitFor(() => {
       expect(result.current.connectionStatus).toBe('disconnected');
     });
 
-    // Should attempt reconnection
+    // Should attempt reconnection — a new socket is created after the backoff.
+    // (Asserting on the transient 'connecting' state would be racy; the new
+    // socket instance is the durable evidence of a reconnect attempt.)
     await waitFor(() => {
-      expect(result.current.connectionStatus).toBe('connecting');
+      expect(getMockWebSocket().instances.length).toBeGreaterThan(socketsBefore);
     }, { timeout: 1000 });
   });
 
@@ -151,48 +151,55 @@ describe('useWebSocket', () => {
       expect(result.current.isConnected).toBe(true);
     });
 
-    // Simulate invalid JSON message
+    // Deliver invalid JSON through the hook's actual socket handler
     act(() => {
-      const mockWs = new (getMockWebSocket())('ws://localhost:3000/ws');
-      mockWs.onmessage?.({ data: 'invalid json{' } as MessageEvent);
+      getMockWebSocket().last.onmessage?.({ data: 'invalid json{' } as MessageEvent);
     });
 
-    // Should handle error and try to process as raw message
+    // Should handle the parse error and fall back to a raw message
     await waitFor(() => {
       expect(onMessage).toHaveBeenCalledWith({ type: 'raw', data: 'invalid json{' });
     });
   });
 
   it('should respect max reconnection attempts', async () => {
+    // Keep sockets in CONNECTING (never fire onopen) so a successful open can't
+    // reset reconnectAttempts — that lets the attempt counter actually climb to
+    // the max across repeated failures.
+    getMockWebSocket().autoConnect = false;
+
     const { result } = renderHook(() =>
       useWebSocket('ws://localhost:3000/ws', {
         reconnect: true,
         maxReconnectAttempts: 2,
-        reconnectInterval: 50
+        reconnectInterval: 30
       })
     );
 
-    // Wait for initial connection
+    // Mount creates the first socket
     await waitFor(() => {
-      expect(result.current.isConnected).toBe(true);
+      expect(getMockWebSocket().last).toBeDefined();
     });
 
-    // Simulate multiple connection failures
+    // Fail repeatedly. Each retryable close either schedules another reconnect
+    // (new socket) or, once the max is reached, flips to the error state.
     for (let i = 0; i < 3; i++) {
+      const socketsBefore = getMockWebSocket().instances.length;
+
       act(() => {
-        const mockWs = new (getMockWebSocket())('ws://localhost:3000/ws');
-        mockWs.simulateClose(1006, 'Connection lost');
+        getMockWebSocket().last.simulateClose(1006, 'Connection lost');
       });
 
       await waitFor(() => {
-        expect(result.current.connectionStatus).toBe('disconnected');
-      });
+        const reconnected = getMockWebSocket().instances.length > socketsBefore;
+        const errored = result.current.connectionStatus === 'error';
+        expect(reconnected || errored).toBe(true);
+      }, { timeout: 1000 });
 
-      // Wait for potential reconnection attempt
-      await new Promise(resolve => setTimeout(resolve, 100));
+      if (result.current.connectionStatus === 'error') break;
     }
 
-    // After max attempts, should be in error state
+    // After exceeding max attempts, should be in error state
     await waitFor(() => {
       expect(result.current.connectionStatus).toBe('error');
     }, { timeout: 1000 });

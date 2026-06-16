@@ -7,6 +7,17 @@ class MockWebSocket {
   static CLOSING = 2;
   static CLOSED = 3;
 
+  // Registry so tests can drive the socket the hook actually created
+  // (the hook does `new WebSocket(url)` internally — tests must reach THAT
+  // instance, not a throwaway one). MockWebSocket.last is the newest socket.
+  static instances: MockWebSocket[] = [];
+  // When false, sockets stay CONNECTING (never fire onopen). Lets reconnection
+  // tests accumulate attempts without onopen resetting the counter.
+  static autoConnect = true;
+  static get last(): MockWebSocket {
+    return MockWebSocket.instances[MockWebSocket.instances.length - 1];
+  }
+
   readyState = MockWebSocket.CONNECTING;
   url: string;
   onopen: ((event: Event) => void) | null = null;
@@ -16,13 +27,16 @@ class MockWebSocket {
 
   constructor(url: string) {
     this.url = url;
-    // Simulate connection after a short delay
-    setTimeout(() => {
-      this.readyState = MockWebSocket.OPEN;
-      if (this.onopen) {
-        this.onopen(new Event('open'));
-      }
-    }, 100);
+    MockWebSocket.instances.push(this);
+    if (MockWebSocket.autoConnect) {
+      // Simulate connection after a short delay
+      setTimeout(() => {
+        this.readyState = MockWebSocket.OPEN;
+        if (this.onopen) {
+          this.onopen(new Event('open'));
+        }
+      }, 100);
+    }
   }
 
   send(_data: string) {
@@ -93,14 +107,22 @@ global.fetch = jest.fn(() =>
   } as Response)
 );
 
-// Mock localStorage
+// Mock localStorage — jsdom provides a real localStorage that shadows a plain
+// `global.localStorage =` assignment, so define it as an own property on window.
+// getItem returns null by default (matches the real Storage API for missing
+// keys); the default is re-asserted in beforeEach so a per-test mockReturnValue
+// can't leak to later tests.
 const localStorageMock = {
-  getItem: jest.fn(),
+  getItem: jest.fn(() => null as string | null),
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+  configurable: true,
+});
 
 // window.location (host/hostname/port/protocol) is provided by jest.config.js
 // testEnvironmentOptions.url ('http://localhost:3000'); jest 30 / jsdom no longer
@@ -117,8 +139,10 @@ console.warn = jest.fn((message: any) => {
 // Reset mocks between tests
 beforeEach(() => {
   jest.clearAllMocks();
-  localStorageMock.getItem.mockClear();
-  localStorageMock.setItem.mockClear();
-  localStorageMock.removeItem.mockClear();
-  localStorageMock.clear.mockClear();
+  // Re-assert the default after clearAllMocks (which clears calls but keeps a
+  // leaked per-test mockReturnValue).
+  localStorageMock.getItem.mockReturnValue(null);
+  // Reset WebSocket registry/behavior so tests don't see prior sockets.
+  MockWebSocket.instances = [];
+  MockWebSocket.autoConnect = true;
 });
