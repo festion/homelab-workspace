@@ -91,6 +91,9 @@ export const ConnectionStatus = memo<ConnectionStatusProps>(({
     if (!lastUpdate) return 'Never';
     try {
       const date = new Date(lastUpdate);
+      // An unparseable date yields NaN getTime() (no throw), which would fall
+      // through to toLocaleTimeString() → "Invalid Date". Detect it explicitly.
+      if (isNaN(date.getTime())) return 'Invalid time';
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffSeconds = Math.floor(diffMs / 1000);
