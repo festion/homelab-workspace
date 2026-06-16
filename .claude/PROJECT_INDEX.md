@@ -1,49 +1,50 @@
 # Project Index: workspace
 
 ## 1. Core Purpose
-This workspace functions as a comprehensive homelab management and automation platform. Its core purpose is to streamline the deployment, configuration, monitoring, and maintenance of various services and infrastructure components within a homelab environment. It integrates tools for GitOps, container orchestration, home automation, 3D printing management, and potentially AI/ML-driven automation and monitoring. The project aims to provide a robust, automated, and observable homelab.
+This workspace serves as a comprehensive self-managed homelab and DevOps environment, integrating various custom-built applications, services, and automation scripts. It focuses on infrastructure as code, continuous deployment, monitoring, and AI-driven automation for tasks ranging from smart home management to data processing and device control.
 
 ## 2. Architecture
-The architecture is modular and distributed, built around a microservices-oriented approach.
-
-*   **Centralized APIs & Orchestration**: A central API layer (`api` directory) likely serves as the control plane, interacting with various specialized agents and services. The `homelab-gitops` and `mcp-servers` directories suggest a Master Control Program (MCP) framework for managing and coordinating these services.
-*   **Specialized Agents/Services**: Numerous sub-projects (`birdnet-go`, `birdnet-gone`, `biometric-gateway`, `proxmox-agent`, `serena`, `stormcrow`, `tender`, `tender-photos`, `portal-chat`) operate as distinct services or agents, each handling specific functionalities (e.g., bird detection, biometric authentication, Proxmox integration, chat interfaces).
-*   **Frontend & Dashboards**: Multiple web-based dashboards (`dashboard`, `fitbit-dashboard`, `pi-status-dashboard`, `3ddash`) provide user interfaces for monitoring, configuration, and data visualization.
-*   **Infrastructure as Code (IaC)**: The `homelab-iac` directory, utilizing tools like Ansible and Terraform, manages the underlying infrastructure in a declarative manner.
-*   **Deployment Pipelines**: `1-line-deploy`, `homelab-gitops`, `scripts`, `github-actions-runner`, and `cron` indicate robust CI/CD and GitOps-driven deployment mechanisms for automating software delivery.
-*   **Home Automation Integration**: `home-assistant-config` and `hass-ab-ble-gateway-suite` are dedicated to managing and extending a Home Assistant smart home setup.
-*   **Operations & Logging**: The `operations` directory contains configurations for monitoring tools (e.g., Fluent Bit for log collection, Loki for log aggregation) and system-level scripts.
-*   **Shared Libraries/Wrappers**: The `modules` and `wrappers` directories provide reusable code and shell scripts for interacting with different services and systems.
+The project exhibits a distributed, microservice-oriented architecture, leveraging a mix of programming languages (Go, Python, JavaScript/TypeScript) and containerization technologies (Docker, Podman, LXC).
+-   **API Services**: Core API functionalities are provided by Node.js applications (`api/server.js`) and Go-based services (e.g., `birdnet-go`, `tender`).
+-   **Frontend Applications**: Multiple web-based dashboards and user interfaces (`dashboard`, `3ddash`, `fitbit-dashboard`) offer monitoring and interaction capabilities.
+-   **Automation & Orchestration**: A central "Management Control Plane" (`.mcp`, `mcp-servers`) provides automation and integration points. Extensive shell scripts (`scripts`, `wrappers`) and GitOps practices (`homelab-gitops`) manage deployments, configurations, and system health.
+-   **Infrastructure as Code (IaC)**: Terraform and Ansible configurations (`homelab-iac`) define and manage the underlying infrastructure.
+-   **AI/Agent Integration**: Specialized agents (e.g., `serena`, `.claude`) are integrated to enhance automation, content processing, and intelligent operations.
+-   **Home Automation**: Deep integration with Home Assistant (`home-assistant-config`) for smart device management and custom automations.
 
 ## 3. Key Files
-*   `./deploy-ssh-keys-working.sh`: Script for deploying SSH keys.
-*   `./verify-dns-migration.sh`: Script to verify DNS migration.
-*   `./portal-chat/README.md`: Documentation for the portal-chat project.
-*   `./portal-chat/tests/test_chat_endpoint.py`: Tests for the chat endpoint.
-*   `./portal-chat/tests/test_agent_tier1.py`: Tests for Tier 1 agents in portal-chat.
-*   `./portal-chat/tests/test_ha.py`: High-availability tests for portal-chat.
-*   `./portal-chat/tests/test_agent_tier2.py`: Tests for Tier 2 agents in portal-chat.
-*   `./portal-chat/tests/test_health.py`: Health check tests for portal-chat.
-*   `./portal-chat/tests/test_sensitive_devices.py`: Tests for sensitive device interactions in portal-chat.
-*   `./portal-chat/tests/test_prompt.py`: Prompt-related tests for portal-chat.
-*   `./portal-chat/tests/test_config.py`: Configuration tests for portal-chat.
-*   `./portal-chat/tests/test_stormcrow.py`: Stormcrow integration tests for portal-chat.
-*   `./portal-chat/tests/test_guardrails.py`: Guardrail tests for portal-chat.
-*   `./portal-chat/tests/test_stormcrow_format.py`: Stormcrow format tests for portal-chat.
 
-(Note: `portal-chat/.venv/lib/python3.11/site-packages/pip/...` are internal pip library files and are not considered key project files.)
+-   `./VERSION`: Stores the overall project version.
+-   `./.pre-commit-config.yaml`: Configuration for pre-commit hooks, ensuring code quality and standards.
+-   `./install.sh`: Primary script for initial setup and installation.
+-   `./update-production.sh`: Script for updating the production environment.
+-   `./manual-deploy.sh`, `./quick-fix-deploy.sh`: Scripts for specific deployment scenarios.
+-   `./cleanup-mcp-structure.sh`: Script for managing the MCP directory structure.
+-   `./.mcp/`: Contains core scripts and configurations for the Management Control Plane.
+-   `./.prompts/`: Houses prompts and configurations for AI agents.
+-   `./.serena/`: Directory for the Serena AI agent's files.
+-   `./api/server.js`: Main entry point for the Node.js API server.
+-   `./homelab-gitops/README.md`: Overview and documentation for the GitOps implementation.
+-   `./home-assistant-config/configuration.yaml`: Central configuration file for Home Assistant.
+-   `./mcp-servers/README.md`: Documentation for the various MCP server components.
+-   `./portal-chat/README.md`: Documentation for the Portal Chat application.
+-   `./serena/README.md`: Documentation for the Serena AI agent.
+-   `./wrappers/`: Collection of shell scripts that act as wrappers for different services.
+-   `./deploy-ssh-keys-working.sh`: Script related to SSH key deployment.
+-   `./verify-dns-migration.sh`: Script to verify DNS migration.
+-   `./portal-chat/src/`: Source code for the Portal Chat application.
+-   `./portal-chat/tests/`: Unit and integration tests for the Portal Chat.
 
 ## 4. Dependencies
-The codebase utilizes a diverse set of technologies:
-
-*   **Backend Languages**:
-    *   **Python**: Used extensively for various agents, scripts, and Home Assistant integrations (`fitbit-dashboard`, `portal-chat`, `model-catalog`, `proxmox-agent`, `serena`, `stormcrow`, `home-assistant-config`, `create-consolidated-config.py`). Managed with `pip` (via `requirements.txt`) and `Poetry` (via `pyproject.toml`).
-    *   **Go**: Used for several specialized services and gateways (`biometric-gateway`, `birdnet-go`, `birdnet-gone`, `tender`, `tender-photos`). Managed with Go Modules (`go.mod`, `go.sum`).
-    *   **JavaScript/TypeScript**: Used for APIs and frontend applications (`api`, `dashboard`, `gw4-config-tool`, `homelab-gitops`). Managed with `npm`/`yarn` (via `package.json`, `package-lock.json`).
-*   **Frontend Frameworks**: React/Vite (in `dashboard`), HTML/CSS/JavaScript (various UIs). Tailwind CSS is used for styling.
-*   **Containerization**: Docker and Docker Compose (`Dockerfile`, `docker-compose.yml`) are used for packaging and orchestrating services.
-*   **Infrastructure as Code**: Ansible and Terraform (`homelab-iac`) for infrastructure provisioning and configuration.
-*   **Home Automation**: Home Assistant ecosystem (YAML configurations, custom components).
-*   **Scripting**: Extensive use of Bash scripts (`.sh` files) for automation, deployment, and operational tasks.
-*   **Configuration Management**: Various `.yaml`, `.json`, `.conf`, and `.toml` files for application and system configuration.
-*   **Pre-commit Hooks**: `.pre-commit-config.yaml` for code quality and linting.
+-   **Languages & Runtimes**: Go, Python, Node.js (JavaScript/TypeScript), Bash.
+-   **Frameworks & Libraries**: React/Vite (for frontends), Express.js (Node.js APIs), FastAPI/Flask/Django (Python APIs), Gorilla Mux (Go web toolkit), various Python libraries (e.g., for data processing, Home Assistant integrations).
+-   **Containerization**: Docker, Podman, LXC.
+-   **Orchestration & Virtualization**: Proxmox, potentially Kubernetes (inferred from IaC).
+-   **Home Automation**: Home Assistant.
+-   **Databases**: Likely PostgreSQL, SQLite, possibly others.
+-   **Monitoring & Logging**: Grafana, Loki, Uptime Kuma, Fluent Bit.
+-   **Version Control**: Git.
+-   **CI/CD**: GitHub Actions.
+-   **Configuration Management**: Ansible, Terraform, Infisical.
+-   **Documentation**: Wiki.js.
+-   **Cloud/External Services**: GitHub for GitOps and actions, potentially other cloud services for specific integrations.
