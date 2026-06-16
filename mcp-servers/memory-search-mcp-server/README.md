@@ -12,6 +12,31 @@ learnings, **and** each project's own `.claude/learnings` (e.g. `operations`,
 (`(global)` or the repo name); `memory_recall(..., project="operations")` scopes
 to that repo's learnings plus global.
 
+### Coverage snapshot
+
+`memory-search --stats` (2026-06-15) — **680 docs across 15 projects**:
+
+```
+  348  (global)              # workspace memory + global learnings
+  146  operations
+   63  home-assistant-config
+   37  homelab-iac
+   18  birdnet-gone
+   18  proxmox-agent
+   13  stormcrow
+   11  pi-status-dashboard
+   11  heydj
+    6  homelab-gitops
+    3  birdnet-go
+    3  model-catalog
+    1  mcp-servers
+    1  3d-print
+    1  biometric-gateway
+```
+
+The count grows as memory/learnings are added; run `memory-search --stats` for
+the live breakdown.
+
 ## Why
 
 The auto-loaded `MEMORY.md` index has a size ceiling (it gets silently truncated
