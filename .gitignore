@@ -166,6 +166,11 @@ dev-*
 test-*
 
 # Workspace cloned repos (not part of mcp-servers)
+# These are independent repos that happen to live in this working tree. They are
+# developed on their own and are NOT tracked by mcp-servers. (Previously some
+# were registered as git submodules, but nothing consumed the submodule pointers
+# — no CI checks out --recurse-submodules — so they caused permanent "M <repo>"
+# noise in `git status` and were demoted to plain ignored clones, 2026-06-26.)
 seed2smoke/
 birdnet-gone/
 birdnet-gone.git/
@@ -185,6 +190,20 @@ tender-photos/
 backups/
 Omada_firmware/
 home-assistant-config-backup-*/
+# Demoted ex-submodules (2026-06-26):
+proxmox-agent/
+homelab-gitops/
+operations/
+hass-ab-ble-gateway-suite/
+home-assistant-config/
+serena/
+pi-status-dashboard/
+3d-print/
+fitbit-dashboard/
+tender/
+# Newer clones:
+finances/
+garden-ledger/
 
 # One-off utility scripts
 deploy-ssh-keys*.sh
