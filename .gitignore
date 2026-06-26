@@ -204,6 +204,8 @@ tender/
 # Newer clones:
 finances/
 garden-ledger/
+# Extracted to its own repo festion/mcp-servers (2026-06-26):
+mcp-servers/
 
 # One-off utility scripts
 deploy-ssh-keys*.sh

@@ -1,6 +1,0 @@
-credentials.json
-token.json
-.env
-__pycache__/
-*.egg-info/
-.venv/
