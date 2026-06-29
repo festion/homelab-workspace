@@ -237,3 +237,6 @@ mcp-servers/.claude/settings.local.json
 mcp-servers/.serena/
 .beads/
 mcp-servers/proxmox-mcp-server/proxmox_mcp_config.json
+
+# git worktrees (local, never tracked)
+.worktrees/

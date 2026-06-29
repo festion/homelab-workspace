@@ -1,0 +1,8 @@
+# Runtime state — the high-water mark; cron writes it OUT of the repo
+# (~/.local/state/learnings-extractor/), but ignore the in-repo path too so a
+# manual run never dirties the working tree.
+state/last_run.json
+
+__pycache__/
+*.pyc
+.pytest_cache/
