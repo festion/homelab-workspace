@@ -27,3 +27,19 @@ def test_garbage_verdict_is_conflict():
 
 def test_agree_verdict():
     assert candidates.parse_verdict('{"verdict":"agree","reason":"r"}')["verdict"] == "agree"
+
+
+def test_fenced_verdict_parses():
+    # gemini -o text wraps JSON in ```json ... ``` fences; must still parse as agree
+    fenced = '```json\n{"verdict":"agree","reason":"r"}\n```'
+    assert candidates.parse_verdict(fenced)["verdict"] == "agree"
+
+
+def test_verdict_with_preamble_parses():
+    noisy = 'Hook registry initialized with 0 hook entries\n{"verdict":"agree","reason":"r"}'
+    assert candidates.parse_verdict(noisy)["verdict"] == "agree"
+
+
+def test_fenced_candidates_parse():
+    fenced = "```json\n" + VALID + "\n```"
+    assert len(candidates.parse_candidates(fenced)) == 1
