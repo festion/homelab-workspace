@@ -20,6 +20,15 @@ def test_excerpt_is_redacted(transcript):
     assert "sk-ant" not in json.dumps(out)
 
 
+def test_long_turn_truncated_in_excerpt(transcript):
+    big = "x" * 5000
+    p = transcript([("user", big), ("user", "no wrong")])
+    out = prefilter.process_file(p)
+    assert len(out) == 1
+    assert "truncated" in out[0]["excerpt"]
+    assert out[0]["excerpt"].count("x") < 2000  # not the full 5000-char dump
+
+
 def test_high_water_mark_skips_unchanged(tmp_path, transcript):
     p = transcript([("user", "no wrong")])
     state = tmp_path / "state.json"

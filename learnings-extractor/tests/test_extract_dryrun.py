@@ -9,7 +9,19 @@ import os
 import subprocess
 from pathlib import Path
 
+from learnings_extractor import pipeline
+
 ROOT = Path(__file__).parent.parent  # learnings-extractor/ project root
+
+
+def test_cap_windows_drops_excess():
+    kept, dropped = pipeline._cap_windows(list(range(10)), 4)
+    assert kept == [0, 1, 2, 3] and dropped == 6
+
+
+def test_cap_windows_no_drop():
+    kept, dropped = pipeline._cap_windows([1, 2], 5)
+    assert kept == [1, 2] and dropped == 0
 
 
 def _stub(bindir, name, body):

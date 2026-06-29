@@ -28,6 +28,19 @@ PROMPTS = Path(__file__).parent.parent / "prompts"
 CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
 GEMINI_BIN = os.environ.get("GEMINI_BIN", "gemini")
 
+# Max friction windows fed to the cluster model in one run. A 7-day cold-start
+# scan can yield 500+ windows; even with per-turn truncation that overruns the
+# model's context. Weekly incremental runs (high-water mark) stay well under
+# this. Excess is dropped with a logged notice (never silently).
+MAX_WINDOWS = int(os.environ.get("EXTRACT_MAX_WINDOWS", "150"))
+
+
+def _cap_windows(windows, limit):
+    """Return (kept, dropped_count). Keeps the first ``limit`` windows."""
+    if len(windows) <= limit:
+        return windows, 0
+    return windows[:limit], len(windows) - limit
+
 
 def _cluster(windows, model):
     """Stage 2: claude -p clusters windows -> candidates JSON. Retry once, then fail loud."""
@@ -78,6 +91,12 @@ def run(dirs, state_path, project_id, dry_run, since_mtime=None,
         if not windows:
             print("no friction windows this week (state advanced)", file=out)
             return 0
+
+        windows, dropped = _cap_windows(windows, MAX_WINDOWS)
+        if dropped:
+            print(f"WARNING: {dropped} friction window(s) over the {MAX_WINDOWS} "
+                  f"cap were dropped this run (cold-start backlog; weekly "
+                  f"incremental runs stay under the cap)", file=out)
 
         cands = _cluster(windows, model)
         for c in cands:
