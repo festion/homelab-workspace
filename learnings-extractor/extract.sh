@@ -16,12 +16,20 @@ export EXTRACT_MODEL="$MODEL"
 DRY_RUN=0
 for a in "$@"; do [ "$a" = "--dry-run" ] && DRY_RUN=1; done
 
-# Pushover on every exit path; silent in dry-run or when no sender is available.
+# Pushover on every exit path; silent in dry-run or when creds don't resolve.
+# Uses the shared homelab Pushover app (Infisical PUSHOVER_API_TOKEN +
+# PUSHOVER_USER_KEY). infisical-get stderr is silenced (it echoes the value on
+# stderr too) and the value is never printed.
 notify() {
   [ "$DRY_RUN" = 1 ] && return 0
-  if command -v pushover-send >/dev/null 2>&1; then
-    pushover-send "$1" "$2" >/dev/null 2>&1 || true
-  fi
+  local tok usr
+  tok=$(infisical-get PUSHOVER_API_TOKEN 2>/dev/null) || return 0
+  usr=$(infisical-get PUSHOVER_USER_KEY 2>/dev/null) || return 0
+  [ -n "$tok" ] && [ -n "$usr" ] || return 0
+  curl -s -o /dev/null --max-time 15 \
+    --form-string "token=$tok" --form-string "user=$usr" \
+    --form-string "title=$1" --form-string "message=$2" \
+    https://api.pushover.net/1/messages.json || true
 }
 
 if timeout 1800 python3 -m learnings_extractor.pipeline "$@"; then
