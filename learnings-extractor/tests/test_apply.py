@@ -31,6 +31,18 @@ def test_is_probable_dup_detects_overlap():
     assert not ap.is_probable_dup("### Completely unrelated DHCP lease quirk", existing)
 
 
+def test_parse_card_recovers_entity_escaped_core():
+    # the rendered core is HTML-escaped; apostrophes must not truncate it
+    body = ("<h3>H headline</h3>"
+            "<p><b>Kind:</b> learning &nbsp; <b>Routing:</b> operations</p>"
+            "<p><b>Core:</b> don&#x27;t do X; it&#x27;s wrong</p>"
+            "<p><b>Evidence sessions:</b></p><ul><li>s1</li><li>s2</li></ul>")
+    c = ap.parse_card({"id": 1, "description": body, "title": "[Learning] H"})
+    assert c["core"] == "don't do X; it's wrong"
+    assert c["routing"] == "operations"
+    assert c["evidence_session_ids"] == ["s1", "s2"]
+
+
 def test_index_gets_core_archive_gets_body(tmp_path):
     idx = tmp_path / "environment.md"
     arc = tmp_path / "environment-archive.md"

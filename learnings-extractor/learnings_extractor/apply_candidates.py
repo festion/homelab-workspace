@@ -132,7 +132,10 @@ def write_entry(index_path, archive_path, headline, body, core=""):
 
 
 def _field(body, label):
-    m = re.search(rf"<b>{label}:</b>\s*([^<&]+)", body or "")
+    # Match up to the next tag only (NOT up to `&`) — the rendered value is
+    # HTML-escaped, so apostrophes etc. appear as entities (`don&#x27;t`); a
+    # `[^<&]+` class would truncate the value at the first entity.
+    m = re.search(rf"<b>{label}:</b>\s*([^<]+)", body or "")
     return html.unescape(m.group(1)).strip() if m else ""
 
 
