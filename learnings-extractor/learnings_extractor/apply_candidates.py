@@ -32,7 +32,10 @@ from pathlib import Path
 
 from learnings_extractor.lib import vikunja
 
-GLOBAL_ROOT = os.path.expanduser("~/.claude/learnings")
+# Resolve the symlink (~/.claude/learnings -> ~/dotfiles/.claude/learnings) to the
+# canonical in-repo path, so `git add` sees the file as inside the dotfiles repo
+# (an absolute symlinked path is "outside repository" and git add fails).
+GLOBAL_ROOT = os.path.realpath(os.path.expanduser("~/.claude/learnings"))
 WORKSPACE = os.path.expanduser("~/workspace")
 _STOP = {"a", "an", "the", "is", "to", "of", "in", "on", "for", "and", "or",
          "but", "it", "x", "y", "n", "via", "with", "by", "as"}
